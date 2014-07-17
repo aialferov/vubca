@@ -11,18 +11,22 @@ erlang_man="otp_doc_man_17.1.tar.gz"
 erlang_deb_link=\
 "http://packages.erlang-solutions.com\
 /site/esl/esl-erlang/FLAVOUR_1_general/$erlang_deb"
-
 erlang_man_link="http://www.erlang.org/download/$erlang_man"
-
-run_as_username="sudo -iu $username"
 
 home="/home/$username"
 
-share_dir="/vagrant"
-cache_dir="$share_dir/cache"
+sync_dir="/vagrant"
+cache_dir="$sync_dir/cache"
+
+erlang_dir="/usr/lib/erlang"
 
 sudoers_dir="/etc/sudoers.d"
 locale_file="/etc/default/locale"
+hostname_file="/etc/hostname"
+
+flash_root="/media/flash"
+
+run_as_username="sudo -iu $username"
 
 
 ### Fix locale
@@ -32,7 +36,7 @@ echo "LC_ALL=$LANG" >> $locale_file
 
 ### Change hostname
 
-echo $hostname > /etc/hostname
+echo $hostname > $hostname_file
 hostname $hostname
 
 
@@ -50,7 +54,7 @@ if [ ! -f $erlang_man ]; then wget $erlang_man_link; fi
 dpkg -i $erlang_deb
 apt-get install -fy
 
-tar vzxf $erlang_man -C /usr/lib/erlang
+tar vzxf $erlang_man -C $erlang_dir
 
 
 ### Add user $username
@@ -64,7 +68,7 @@ sed -i s/vagrant/$username/ $sudoers_dir/$username
 
 ## Setup ssh for $username (you should put .ssh.tar.bz2 there)
 
-tar vjxf $share_dir/.ssh.tar.bz2 -C $home
+tar vjxf $sync_dir/.ssh.tar.bz2 -C $home
 cat /home/vagrant/.ssh/authorized_keys >> $home/.ssh/authorized_keys
 chown -R $username:$username $home/.ssh/
 
@@ -80,4 +84,6 @@ make install -C $home/etools
 $run_as_username rm -rf $home/etools
 
 
+### Setup flash drive directory
 
+echo "export FLASH_ROOT=$flash_root" >> $home/.profile
