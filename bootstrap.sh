@@ -80,6 +80,4 @@ make install -C $home/etools
 $run_as_username rm -rf $home/etools
 
 
-### Reboot that might be required by kernel update
 
-reboot
