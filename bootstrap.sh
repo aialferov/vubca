@@ -18,6 +18,9 @@ home="/home/$username"
 sync_dir="/vagrant"
 cache_dir="$sync_dir/cache"
 
+packages_dir="$cache_dir/archives"
+packages_dir_guest="/var/cache/apt/archives"
+
 erlang_dir="/usr/lib/erlang"
 
 sudoers_dir="/etc/sudoers.d"
@@ -42,6 +45,9 @@ hostname $hostname
 
 ### Install $packages_to_install and Erlang
 
+mkdir -p $packages_dir
+cp $packages_dir/*.deb $packages_dir_guest # restore packages from cache
+
 apt-get update && apt-get upgrade -y
 apt-get install -y $packages_to_install
 
@@ -55,6 +61,8 @@ dpkg -i $erlang_deb
 apt-get install -fy
 
 tar vzxf $erlang_man -C $erlang_dir
+
+cp $packages_dir_guest/*.deb $packages_dir # update packages cache
 
 
 ### Add user $username
