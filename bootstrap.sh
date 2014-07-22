@@ -21,6 +21,8 @@ cache_dir="$sync_dir/cache"
 packages_dir="$cache_dir/archives"
 packages_dir_guest="/var/cache/apt/archives"
 
+sources_dir="$cache_dir/sources"
+
 erlang_dir="/usr/lib/erlang"
 
 sudoers_dir="/etc/sudoers.d"
@@ -51,8 +53,7 @@ cp $packages_dir/*.deb $packages_dir_guest # restore packages from cache
 apt-get update && apt-get upgrade -y
 apt-get install -y $packages_to_install
 
-mkdir -p $cache_dir
-cd $cache_dir
+mkdir -p $cache_dir && cd $cache_dir
 
 if [ ! -f $erlang_deb ]; then wget $erlang_deb_link; fi
 if [ ! -f $erlang_man ]; then wget $erlang_man_link; fi
@@ -76,20 +77,29 @@ sed -i s/vagrant/$username/ $sudoers_dir/$username
 
 ## Setup ssh for $username (you should put .ssh.tar.bz2 there)
 
-tar vjxf $sync_dir/.ssh.tar.bz2 -C $home
+for i in $home /root; do tar vjxf $sync_dir/.ssh.tar.bz2 -C $i; done
 cat /home/vagrant/.ssh/authorized_keys >> $home/.ssh/authorized_keys
+chown -R root:root /root/.ssh/
 chown -R $username:$username $home/.ssh/
 
 ## Setup some apps for $username
 
-$run_as_username git clone git:git/configs
-$run_as_username make install -C configs
-$run_as_username rm -rf configs
+function git_install { path="$1" make="$2" install_from="$3"
+	name="${path##*/}"
+	cur_dir="$PWD"
+	run=""
 
-$run_as_username git clone git@github.com:aialferov/etools $home/etools
-$run_as_username make -C $home/etools
-make install -C $home/etools
-$run_as_username rm -rf $home/etools
+	if [ -d "$name" ]; then cd $name; git pull; cd ../; else git clone $path; fi
+	if [ "$make" = "make" ]; then make -C $name; fi
+	if [ "$install_from" != "root" ]; then run="sudo -iu $install_from"; fi
+
+	$run make install -C $cur_dir/$name
+}
+
+mkdir -p $sources_dir && cd $sources_dir
+
+git_install git@alferov.me:git/configs nomake $username
+git_install git@github.com:aialferov/etools make root
 
 
 ### Setup flash drive directory
