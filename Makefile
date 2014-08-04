@@ -2,7 +2,7 @@ all:
 	vagrant up
 
 reboot:
-	vagranat reload
+	vagrant reload
 
 clean:
 	vagrant destroy -f
