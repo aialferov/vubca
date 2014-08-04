@@ -20,8 +20,8 @@ home="/home/$username"
 sync_dir="/vagrant"
 cache_dir="$sync_dir/cache"
 
-packages_dir="$cache_dir/archives"
-packages_dir_guest="/var/cache/apt/archives"
+packages_dir="$cache_dir/apt"
+packages_dir_guest="/var/cache/apt"
 
 sources_dir="$cache_dir/sources"
 
@@ -49,8 +49,11 @@ hostname $hostname
 
 ### Install $packages_to_install and Erlang
 
-mkdir -p $packages_dir
-cp $packages_dir/*.deb $packages_dir_guest # restore packages from cache
+mkdir -p $packages_dir/archives
+
+# restore packages from cache
+cp $packages_dir/*.bin $packages_dir_guest
+cp $packages_dir/archives/*.deb $packages_dir_guest/archives
 
 apt-get update && apt-get upgrade -y
 apt-get install -y $packages_to_install
@@ -65,7 +68,9 @@ apt-get install -fy
 
 tar vzxf $erlang_man -C $erlang_dir
 
-cp $packages_dir_guest/*.deb $packages_dir # update packages cache
+# update packages cache
+cp $packages_dir_guest/*.bin $packages_dir
+cp $packages_dir_guest/archives/*.deb $packages_dir/archives
 
 
 ### Add user $username
