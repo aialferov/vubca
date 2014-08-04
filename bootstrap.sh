@@ -3,6 +3,8 @@
 username="casper"
 hostname="vubca"
 
+gecos="Anton I Alferov"
+
 packages_to_install="tree tmux vim git curl"
 
 erlang_deb="esl-erlang_17.1-1~ubuntu~trusty_amd64.deb"
@@ -68,7 +70,7 @@ cp $packages_dir_guest/*.deb $packages_dir # update packages cache
 
 ### Add user $username
 
-adduser --disabled-password --gecos "" $username
+adduser --disabled-password --gecos "$gecos" $username
 
 ## Make $username the same sudoer as user vagrant
 
