@@ -102,6 +102,7 @@ mkdir -p $sources_dir && cd $sources_dir
 
 git_install git@alferov.me:git/configs nomake $username
 git_install git@github.com:aialferov/etools make root
+git_install git@github.com:aialferov/scripts nomake root
 
 
 ### Setup flash drive directory
