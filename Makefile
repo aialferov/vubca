@@ -1,3 +1,6 @@
+USER := casper
+SSH := vagrant ssh -- -l
+
 all:
 	vagrant up
 
@@ -7,8 +10,11 @@ reboot:
 clean:
 	vagrant destroy -f
 
+update:
+	$(SSH) $(USER) "sudo apt-get update && sudo apt-get upgrade -y"
+
 ssh:
-	vagrant ssh -- -l casper
+	$(SSH) $(USER)
 
 wake:
 	vagrant resume
