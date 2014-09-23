@@ -5,15 +5,10 @@ hostname="vubca"
 
 gecos="Anton I Alferov"
 
-packages_to_install="tree tmux vim git curl"
+packages_to_install="tree tmux vim git curl erlang erlang-manpages"
 
-erlang_deb="esl-erlang_17.1-1~ubuntu~trusty_amd64.deb"
-erlang_man="otp_doc_man_17.1.tar.gz"
-
-erlang_deb_link=\
-"http://packages.erlang-solutions.com\
-/site/esl/esl-erlang/FLAVOUR_1_general/$erlang_deb"
-erlang_man_link="http://www.erlang.org/download/$erlang_man"
+erlang_repo="erlang-solutions_1.0_all.deb"
+erlang_repo_link="http://packages.erlang-solutions.com/$erlang_repo"
 
 home="/home/$username"
 
@@ -24,8 +19,6 @@ packages_dir="$cache_dir/apt"
 packages_dir_guest="/var/cache/apt"
 
 sources_dir="$cache_dir/sources"
-
-erlang_dir="/usr/lib/erlang"
 
 sudoers_dir="/etc/sudoers.d"
 locale_file="/etc/default/locale"
@@ -47,7 +40,7 @@ echo $hostname > $hostname_file
 hostname $hostname
 
 
-### Install $packages_to_install and Erlang
+### Install $packages_to_install
 
 mkdir -p $packages_dir/archives
 
@@ -55,18 +48,13 @@ mkdir -p $packages_dir/archives
 cp $packages_dir/*.bin $packages_dir_guest
 cp $packages_dir/archives/*.deb $packages_dir_guest/archives
 
+wget $erlang_repo_link
+sudo dpkg -i $erlang_repo
+
 apt-get update && apt-get upgrade -y
 apt-get install -y $packages_to_install
 
 mkdir -p $cache_dir && cd $cache_dir
-
-if [ ! -f $erlang_deb ]; then wget $erlang_deb_link; fi
-if [ ! -f $erlang_man ]; then wget $erlang_man_link; fi
-
-dpkg -i $erlang_deb
-apt-get install -fy
-
-tar vzxf $erlang_man -C $erlang_dir
 
 # update packages cache
 cp $packages_dir_guest/*.bin $packages_dir
