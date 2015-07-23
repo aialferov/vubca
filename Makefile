@@ -1,5 +1,5 @@
 USER := casper
-SSH := vagrant ssh -- -l
+SSH := vagrant ssh -- -A -l
 
 all:
 	vagrant up
