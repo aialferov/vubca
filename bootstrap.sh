@@ -93,7 +93,7 @@ function git_install { path="$1" make="$2" install_from="$3"
 
 mkdir -p $sources_dir && cd $sources_dir
 
-git_install git@alferov.me:git/configs nomake $username
+git_install git@github.com:aialferov/dotfiles nomake $username
 git_install git@github.com:aialferov/etools make root
 git_install git@github.com:aialferov/scripts nomake root
 
