@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 
-username="casper"
-hostname="vubca"
+usernames="casper aalferov"
+hostname="ubca"
 
-gecos="Anton I Alferov"
+fullname="Anton I Alferov"
 
-packages_to_install="tree tmux vim git curl erlang erlang-manpages"
+packages_to_install="\
+    libevent-dev libncurses-dev \
+    tree vim git curl rsync erlang erlang-manpages \
+"
 
 erlang_repo="erlang-solutions_1.0_all.deb"
 erlang_repo_link="http://packages.erlang-solutions.com/$erlang_repo"
-
-home="/home/$username"
 
 sync_dir="/vagrant"
 cache_dir="$sync_dir/cache"
@@ -26,8 +27,6 @@ hostname_file="/etc/hostname"
 
 flash_root="/media/flash"
 
-run_as_username="sudo -iu $username"
-
 
 ### Fix locale
 
@@ -40,7 +39,30 @@ echo $hostname > $hostname_file
 hostname $hostname
 
 
-### Install $packages_to_install
+### Add user $username
+
+for username in $usernames; do
+    adduser --disabled-password --gecos "$fullname" $username
+done
+
+## Make $username the same sudoer as user vagrant
+
+for username in $usernames; do
+    cp $sudoers_dir/vagrant $sudoers_dir/$username
+    sed -i s/vagrant/$username/ $sudoers_dir/$username
+done
+
+## Setup ssh for $usernames
+
+for username in $usernames; do
+    mkdir -p /home/$username/.ssh
+    cat /home/vagrant/.ssh/authorized_keys >> \
+        /home/$username/.ssh/authorized_keys
+    chown -R $username:$username /home/$username/.ssh
+done
+
+
+### Install $packages_to_install and update system
 
 mkdir -p $packages_dir/archives
 
@@ -48,56 +70,62 @@ mkdir -p $packages_dir/archives
 cp $packages_dir/*.bin $packages_dir_guest
 cp $packages_dir/archives/*.deb $packages_dir_guest/archives
 
-wget $erlang_repo_link
-sudo dpkg -i $erlang_repo
+wget -c $erlang_repo_link -P $packages_dir_guest/archives
+sudo dpkg -i $packages_dir_guest/archives/$erlang_repo
 
-apt-get update && apt-get upgrade -y
+apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
 apt-get install -y $packages_to_install
 
-mkdir -p $cache_dir && cd $cache_dir
-
 # update packages cache
-cp $packages_dir_guest/*.bin $packages_dir
-cp $packages_dir_guest/archives/*.deb $packages_dir/archives
+rsync -a $packages_dir_guest/*.bin $packages_dir/
+rsync -a $packages_dir_guest/archives/*.deb $packages_dir/archives/
 
 
-### Add user $username
+### Setup some apps for $usernames
 
-adduser --disabled-password --gecos "$gecos" $username
+function tar_install { link="$1" name="$2"
+    archive="${link##*/}"
+    
+    wget -c "$link"
+    tar xf "$archive"
+    cd "$name"
 
-## Make $username the same sudoer as user vagrant
+    ./configure
+    make -j8
+    sudo make install
 
-cp $sudoers_dir/vagrant $sudoers_dir/$username
-sed -i s/vagrant/$username/ $sudoers_dir/$username
+    cd ../
+}
 
-## Setup ssh for $username (you should put .ssh.tar.bz2 there)
+function git_install { link="$1" make="$2" install_from="$3"
+    name="${link##*/}"
+    cur_dir="$PWD"
+    run=""
 
-for i in $home /root; do tar vjxf $sync_dir/.ssh.tar.bz2 -C $i; done
-cat /home/vagrant/.ssh/authorized_keys >> $home/.ssh/authorized_keys
-chown -R root:root /root/.ssh/
-chown -R $username:$username $home/.ssh/
+    if [ -d "$name" ]; then cd $name; git pull; cd ../; else git clone $link; fi
+    if [ "$make" = "make" ]; then make -C $name; fi
+    if [ "$install_from" != "root" ]; then run="sudo -iu $install_from"; fi
 
-## Setup some apps for $username
-
-function git_install { path="$1" make="$2" install_from="$3"
-	name="${path##*/}"
-	cur_dir="$PWD"
-	run=""
-
-	if [ -d "$name" ]; then cd $name; git pull; cd ../; else git clone $path; fi
-	if [ "$make" = "make" ]; then make -C $name; fi
-	if [ "$install_from" != "root" ]; then run="sudo -iu $install_from"; fi
-
-	$run make install -C $cur_dir/$name
+    $run make install -C $cur_dir/$name
 }
 
 mkdir -p $sources_dir && cd $sources_dir
 
-git_install git@github.com:aialferov/dotfiles nomake $username
-git_install git@github.com:aialferov/etools make root
-git_install git@github.com:aialferov/scripts nomake root
+archive="https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz"
+name="tmux-2.0"
+
+tar_install "$archive" "$name"
+
+for username in $usernames; do
+    git_install git://github.com/aialferov/dotfiles nomake $username
+done
+
+git_install git://github.com/aialferov/etools make root
+git_install git://github.com/aialferov/scripts nomake root
 
 
 ### Setup flash drive directory
 
-echo "export FLASH_ROOT=$flash_root" >> $home/.profile
+for username in $usernames; do
+    echo "export FLASH_ROOT=$flash_root" >> /home/$username/.profile
+done

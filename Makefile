@@ -1,8 +1,11 @@
-USER := casper
+# vim: noet
+
 SSH := vagrant ssh -- -A -l
 
 all:
 	vagrant up
+	vagrant reload
+	vagrant ssh -- "sudo apt-get autoremove -y"
 
 reboot:
 	vagrant reload
@@ -11,10 +14,16 @@ clean:
 	vagrant destroy -f
 
 update:
-	$(SSH) $(USER) "sudo apt-get update && sudo apt-get upgrade -y"
-
+	vagrant ssh -- "\
+		sudo apt-get update && \
+		sudo apt-get upgrade -y && \
+		sudo apt-get dist-upgrade -y\
+	"
 ssh:
-	$(SSH) $(USER)
+	$(SSH) $$(whoami)
+
+ssh-%:
+	$(SSH) $*
 
 wake:
 	vagrant resume
