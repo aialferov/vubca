@@ -1,0 +1,57 @@
+#!/bin/bash
+
+usage="\
+usage: $(basename $0) COMMAND
+
+COMMANDS
+    up
+    destroy
+    reboot
+    update
+    wake
+    sleep
+    ssh
+"
+
+sharepath=.
+sharefiles="Vagrantfile bootstrap.sh"
+
+workdir="$HOME/.vubca"
+
+cmd="$1"
+username="$2"
+
+if [ -z "$cmd" ]; then echo "$usage"; exit 1; fi
+
+if [ ! -d "$workdir" ]; then
+    mkdir -p "$workdir"
+fi
+for sharefile in $sharefiles; do
+    if [ ! -f "$workdir/$sharefile" ]; then
+        cp "$sharepath/$sharefile" "$workdir/$sharefile"
+    fi
+done
+
+if [ -z "$username" ]; then username="$(whoami)"; fi
+
+cd "$workdir"
+
+case "$cmd" in
+    up)
+        vagrant up
+        vagrant reload
+        vagrant ssh -- "sudo apt-get autoremove -y"
+    ;;
+    destroy) vagrant destroy -f ;;
+    reboot) vagrant reload ;;
+    update)
+        vagrant ssh -- "\
+            sudo apt-get update && \
+            sudo apt-get upgrade -y && \
+            sudo apt-get dist-upgrade -y\
+        "
+    ;;
+    wake) vagrant resume ;;
+    sleep) vagrant suspend ;;
+    ssh) vagrant ssh -- -A -l "$username" ;;
+esac

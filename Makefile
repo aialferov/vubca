@@ -1,32 +1,29 @@
 # vim: noet
 
-SSH := vagrant ssh -- -A -l
+PKGROOT :=
+DESTDIR :=
+
+PREFIX := usr/local
+BINDIR := bin
+SHAREDIR := share
+
+BINPATH := $(DESTDIR)/$(PREFIX)/$(BINDIR)
+SHAREPATH := $(DESTDIR)/$(PREFIX)/$(SHAREDIR)
 
 all:
-	vagrant up
-	vagrant reload
-	vagrant ssh -- "sudo apt-get autoremove -y"
 
-reboot:
-	vagrant reload
+installdirs:
+	mkdir -p $(PKGROOT)/$(BINPATH)
+	mkdir -p $(PKGROOT)/$(SHAREPATH)
 
-clean:
-	vagrant destroy -f
+install: installdirs
+	install -p -m 644 Vagrantfile $(PKGROOT)/$(SHAREPATH)
+	install -p bootstrap.sh $(PKGROOT)/$(SHAREPATH)
+	sed s:sharepath=.:sharepath=$(SHAREPATH): vubca > vubca.tmp
+	install -p vubca.tmp $(PKGROOT)/$(BINPATH)/vubca
+	rm -f vubca.tmp
 
-update:
-	vagrant ssh -- "\
-		sudo apt-get update && \
-		sudo apt-get upgrade -y && \
-		sudo apt-get dist-upgrade -y\
-	"
-ssh:
-	$(SSH) $$(whoami)
-
-ssh-%:
-	$(SSH) $*
-
-wake:
-	vagrant resume
-
-sleep:
-	vagrant suspend
+uninstall:
+	rm -f $(PKGROOT)/$(BINPATH)/vubca
+	rm -f $(PKGROOT)/$(SHAREPATH)/bootstrap.sh
+	rm -f $(PKGROOT)/$(SHAREPATH)/Vagrantfile
