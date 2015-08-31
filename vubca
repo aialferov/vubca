@@ -54,4 +54,5 @@ case "$cmd" in
     wake) vagrant resume ;;
     sleep) vagrant suspend ;;
     ssh) vagrant ssh -- -A -l "$username" ;;
+    *) echo "$usage" ;;
 esac
