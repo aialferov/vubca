@@ -20,6 +20,7 @@ workdir="$HOME/.vubca"
 
 cmd="$1"
 username="$2"
+args="${@:3}"
 
 if [ -z "$cmd" ]; then echo "$usage"; exit 1; fi
 
@@ -53,6 +54,6 @@ case "$cmd" in
     ;;
     wake) vagrant resume ;;
     sleep) vagrant suspend ;;
-    ssh) vagrant ssh -- -A -l "$username" ;;
+    ssh) vagrant ssh -- -A -l "$username" $args ;;
     *) echo "$usage" ;;
 esac
