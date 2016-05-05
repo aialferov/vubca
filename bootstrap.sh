@@ -97,22 +97,22 @@ function tar_install { link="$1" name="$2"
     cd ../
 }
 
-function git_install { link="$1" make="$2" install_from="$3"
+function git_install { link="$1" make="$2" install_as="$3"
     name="${link##*/}"
     cur_dir="$PWD"
     run=""
 
     if [ -d "$name" ]; then cd $name; git pull; cd ../; else git clone $link; fi
     if [ "$make" = "make" ]; then make -C $name; fi
-    if [ "$install_from" != "root" ]; then run="sudo -iu $install_from"; fi
+    if [ "$install_as" != "root" ]; then run="sudo -iu $install_as"; fi
 
     $run make install -C $cur_dir/$name
 }
 
 mkdir -p $sources_dir && cd $sources_dir
 
-archive="https://github.com/tmux/tmux/releases/download/2.0/tmux-2.0.tar.gz"
-name="tmux-2.0"
+archive="https://github.com/tmux/tmux/releases/download/2.2/tmux-2.2.tar.gz"
+name="tmux-2.2"
 
 tar_install "$archive" "$name"
 
