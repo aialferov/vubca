@@ -8,6 +8,7 @@ COMMANDS
     destroy
     reboot
     update
+    upgrade
     wake
     sleep
     ssh
@@ -51,6 +52,9 @@ case "$cmd" in
             sudo apt-get upgrade -y && \
             sudo apt-get dist-upgrade -y\
         "
+    ;;
+    upgrade)
+        vagrant box update
     ;;
     wake) vagrant resume ;;
     sleep) vagrant suspend ;;
