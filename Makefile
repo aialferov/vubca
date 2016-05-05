@@ -1,6 +1,5 @@
 # vim: noet
 
-PKGROOT :=
 DESTDIR :=
 
 PREFIX := usr/local
@@ -13,17 +12,17 @@ SHAREPATH := $(DESTDIR)/$(PREFIX)/$(SHAREDIR)
 all:
 
 installdirs:
-	mkdir -p $(PKGROOT)/$(BINPATH)
-	mkdir -p $(PKGROOT)/$(SHAREPATH)
+	mkdir -p $(BINPATH)
+	mkdir -p $(SHAREPATH)
 
 install: installdirs
-	install -p -m 644 Vagrantfile $(PKGROOT)/$(SHAREPATH)
-	install -p bootstrap.sh $(PKGROOT)/$(SHAREPATH)
+	install -p -m 644 Vagrantfile $(SHAREPATH)
+	install -p bootstrap.sh $(SHAREPATH)
 	sed s:sharepath=.:sharepath=$(SHAREPATH): vubca > vubca.tmp
-	install -p vubca.tmp $(PKGROOT)/$(BINPATH)/vubca
+	install -p vubca.tmp $(BINPATH)/vubca
 	rm -f vubca.tmp
 
 uninstall:
-	rm -f $(PKGROOT)/$(BINPATH)/vubca
-	rm -f $(PKGROOT)/$(SHAREPATH)/bootstrap.sh
-	rm -f $(PKGROOT)/$(SHAREPATH)/Vagrantfile
+	rm -f $(BINPATH)/vubca
+	rm -f $(SHAREPATH)/bootstrap.sh
+	rm -f $(SHAREPATH)/Vagrantfile
